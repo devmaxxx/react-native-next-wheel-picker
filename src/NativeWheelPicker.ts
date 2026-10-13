@@ -1,8 +1,9 @@
 import { requireNativeComponent } from 'react-native';
-import type { processColor, TextStyle } from 'react-native';
+import type { ColorValue, processColor, TextStyle } from 'react-native';
 import type { WheelPickerProps } from './types';
 
-// Colors cross the bridge already processed: an ARGB number, or a PlatformColor map.
+// itemStyle colors cross the bridge already processed (an ARGB number, or a
+// PlatformColor map): nothing processes values nested in a map prop.
 type NativeColor = ReturnType<typeof processColor>;
 
 export interface NativeWheelPickerProps extends Pick<
@@ -15,7 +16,7 @@ export interface NativeWheelPickerProps extends Pick<
     color?: NativeColor;
     fontWeight?: string;
   };
-  selectionColor?: NativeColor;
+  selectionColor?: ColorValue;
   displayedValues: string[];
   selectedIndex: number;
   /** Count of the last change event JS has seen; the wheel ignores `selectedIndex` until it catches up. */

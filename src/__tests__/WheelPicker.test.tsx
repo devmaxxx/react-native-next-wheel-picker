@@ -85,6 +85,24 @@ describe('WheelPicker on iOS', () => {
     expect(StyleSheet.flatten(picker().props.style).color).toEqual(PlatformColor('label'));
   });
 
+  // UIPickerView cannot wrap: the items repeat and the wheel stays on the
+  // copy the user scrolled to.
+  it('wraps by repeating the items and keeps the copy the user is on', async () => {
+    const { onValueChange } = await renderPicker({ wrapSelectorWheel: true });
+    const rows = picker().props.items.length;
+    const start = picker().props.selectedIndex;
+
+    expect(rows).toBeGreaterThanOrEqual(1000);
+    expect(start % 3).toBe(1);
+    expect(start).toBeGreaterThan(rows / 3);
+
+    // One row past the last item of this copy: the first item of the next.
+    const next = start + 2;
+    await fireEvent(picker(), 'change', { nativeEvent: { newIndex: next, newValue: next } });
+
+    expect(onValueChange).toHaveBeenCalledWith(SMALL, 0);
+  });
+
   it('passes the band color and theme to the native picker', async () => {
     await renderPicker({ selectionColor: '#ff000080', themeVariant: 'dark' });
 
@@ -121,13 +139,14 @@ describe('WheelPicker on Android', () => {
     expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
   });
 
-  // Regression: Color.parseColor rejects #RGB and reads #RRGGBBAA as AARRGGBB,
-  // so colors are resolved in JS before they cross the bridge.
-  it('resolves item and selection colors to native color values', async () => {
+  // Regression: nothing processes a color nested in itemStyle, so JS does.
+  // selectionColor is a Color prop the view config already processes; doing it
+  // twice turned #0a84ff33 into an opaque #330a84.
+  it('resolves the item color and leaves selectionColor to the view config', async () => {
     await renderPicker({ itemStyle: { color: '#222' }, selectionColor: '#ff000080' });
 
     expect(picker().props.itemStyle.color).toBe(processColor('#222'));
-    expect(picker().props.selectionColor).toBe(processColor('#ff000080'));
+    expect(picker().props.selectionColor).toBe('#ff000080');
   });
 
   it('is 216 tall like the iOS wheel unless itemStyle sets a height', async () => {
@@ -161,6 +180,16 @@ describe('WheelPicker on Android', () => {
     await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 2, eventCount: 3 } });
 
     expect(picker().props).toMatchObject({ mostRecentEventCount: 3, selectedIndex: 1 });
+  });
+
+  it("keeps the user's pick without a value, and follows value once given", async () => {
+    const { onValueChange } = await renderPicker({ value: undefined });
+    expect(picker().props.selectedIndex).toBe(0);
+
+    await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 2, eventCount: 1 } });
+
+    expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
+    expect(picker().props.selectedIndex).toBe(2);
   });
 
   it('does not wrap past the last row unless asked, like iOS', async () => {

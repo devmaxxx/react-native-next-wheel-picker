@@ -1,0 +1,5 @@
+lib/
+coverage/
+example/android/
+example/ios/
+example/vendor/

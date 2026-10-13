@@ -84,6 +84,8 @@ class WheelPickerView(context: Context) : View(context) {
   private var lastY = 0f
   private var dragging = false
   private var lastTickRow = 0
+  // A scroll to a value set from JS: no haptic ticks, as on iOS.
+  private var programmaticScroll = false
   private var stoppedMotion = false
 
   init {
@@ -110,30 +112,40 @@ class WheelPickerView(context: Context) : View(context) {
   }
 
   fun commitProps() {
+    val labelsChanged = pendingLabels != null
     pendingLabels?.let {
       labels = it
       pendingLabels = null
       ellipsized = arrayOfNulls(it.size)
-      scroller.forceFinished(true)
+      stopScroll()
       dragging = false
       selectedIndex = clampIndex(selectedIndex)
       offset = selectedIndex * rowHeight
     }
-    applyJsIndex()
+    // New items jump to the value, like iOS's first selection; a new value
+    // for the same items scrolls to it.
+    applyJsIndex(animate = !labelsChanged)
     invalidate()
   }
 
   // Like iOS's Picker, the wheel shows JS's value once JS has seen the last
   // event, so a parent that rejects a change snaps the wheel back. Also run when
   // a gesture ends, so a value set from outside mid-fling is not lost.
-  private fun applyJsIndex() {
-    if (isInteracting() || jsEventCount < eventCount || labels.isEmpty()) return
+  private fun applyJsIndex(animate: Boolean = true) {
+    // A scroll to an earlier value is redirected; a user's fling or drag is not.
+    val userScrolling = dragging || (!scroller.isFinished && !programmaticScroll)
+    if (userScrolling || jsEventCount < eventCount || labels.isEmpty()) return
     val index = clampIndex(jsIndex)
     val target = nearestOffsetFor(index)
-    if (index != selectedIndex || offset != target) {
-      selectedIndex = index
+    if (index == selectedIndex && offset == target) return
+    selectedIndex = index
+    if (!animate || !isLaidOut || rowHeight <= 0f) {
       offset = target
+      return
     }
+    programmaticScroll = true
+    scroller.startScroll(0, offset.roundToInt(), 0, (target - offset).roundToInt(), SET_DURATION_MS)
+    postInvalidateOnAnimation()
   }
 
   fun setWrap(value: Boolean) {
@@ -177,7 +189,7 @@ class WheelPickerView(context: Context) : View(context) {
     super.onSizeChanged(w, h, oldw, oldh)
     radius = h / 2f
     ellipsized.fill(null)
-    scroller.forceFinished(true)
+    stopScroll()
     offset = selectedIndex * rowHeight
   }
 
@@ -186,7 +198,8 @@ class WheelPickerView(context: Context) : View(context) {
     val cx = width / 2f
     val cy = height / 2f
     val inset = dp(BAND_INSET_DP)
-    val corner = dp(BAND_RADIUS_DP)
+    // A capsule, as UIPickerView draws its band since iOS 26.
+    val corner = rowHeight / 2f
 
     bandRect.set(inset, cy - rowHeight / 2f, width - inset, cy + rowHeight / 2f)
     canvas.drawRoundRect(bandRect, corner, corner, bandPaint)
@@ -247,7 +260,7 @@ class WheelPickerView(context: Context) : View(context) {
       MotionEvent.ACTION_DOWN -> {
         // A touch that stops a fling only stops it; it must not also pick the tapped row.
         stoppedMotion = !scroller.isFinished
-        scroller.forceFinished(true)
+        stopScroll()
         downY = event.y
         lastY = event.y
         dragging = false
@@ -298,7 +311,7 @@ class WheelPickerView(context: Context) : View(context) {
   override fun computeScroll() {
     if (!scroller.computeScrollOffset()) return
     offset = scroller.currY.toFloat()
-    tick()
+    if (!programmaticScroll) tick()
     postInvalidateOnAnimation()
     if (scroller.isFinished) settle()
   }
@@ -351,6 +364,7 @@ class WheelPickerView(context: Context) : View(context) {
   }
 
   private fun settle() {
+    programmaticScroll = false
     if (labels.isEmpty()) return
     val index = indexAt(offset)
     offset = (if (wrap) (offset / rowHeight).roundToInt() else index) * rowHeight
@@ -370,6 +384,13 @@ class WheelPickerView(context: Context) : View(context) {
     if (row == lastTickRow) return
     lastTickRow = row
     if (wrap || row in labels.indices) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+  }
+
+  // Every place that cuts a scroll short must also drop the programmatic flag,
+  // or the next scroll without a touch (accessibility) would be silent.
+  private fun stopScroll() {
+    scroller.forceFinished(true)
+    programmaticScroll = false
   }
 
   private fun endTouch() {
@@ -418,7 +439,7 @@ class WheelPickerView(context: Context) : View(context) {
   private fun measureRows() {
     rowHeight = textPaint.fontSpacing + dp(ROW_PADDING_DP)
     ellipsized.fill(null)
-    scroller.forceFinished(true)
+    stopScroll()
     offset = selectedIndex * rowHeight
     invalidate()
   }
@@ -431,8 +452,8 @@ class WheelPickerView(context: Context) : View(context) {
         Configuration.UI_MODE_NIGHT_YES
     }
     textColor = customTextColor ?: if (dark) Color.WHITE else Color.BLACK
-    // iOS's tertiarySystemFill, which UIPickerView uses for its band.
-    bandPaint.color = customSelectionColor ?: if (dark) 0x3D767680 else 0x1F767680
+    // iOS's quaternarySystemFill, which UIPickerView uses for its band.
+    bandPaint.color = customSelectionColor ?: if (dark) 0x2E767680 else 0x14747480
     invalidate()
   }
 
@@ -447,10 +468,10 @@ class WheelPickerView(context: Context) : View(context) {
     // Viewer distance in cylinder radii. Lower is a stronger perspective.
     const val CAMERA_DISTANCE = 4f
     const val OVERSCROLL_RESISTANCE = 0.4f
-    const val SIDE_ROW_DIM = 0.4f
+    const val SIDE_ROW_DIM = 0.6f
     const val SNAP_DURATION_MS = 250
+    const val SET_DURATION_MS = 300
     const val BAND_INSET_DP = 8f
-    const val BAND_RADIUS_DP = 8f
     const val HALF_PI = (Math.PI / 2).toFloat()
 
     fun setRect(out: FloatArray, x0: Float, y0: Float, x1: Float, y1: Float,

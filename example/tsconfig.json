@@ -1,0 +1,8 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "paths": { "react-native-next-wheel-picker": ["../src"] }
+  },
+  "include": ["src", "index.js"],
+  "exclude": ["**/node_modules", "**/Pods"]
+}

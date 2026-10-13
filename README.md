@@ -60,18 +60,18 @@ Values are matched with `Object.is`. For objects that are not the same reference
 
 ## Props
 
-| Prop                | Type                                | Platform | Description                                                             |
-| ------------------- | ----------------------------------- | -------- | ----------------------------------------------------------------------- |
-| `items`             | `{ label: string; value: T }[]`     | both     | Rows of the wheel. **Required.**                                        |
-| `onValueChange`     | `(value: T, index: number) => void` | both     | Called with the value of the row the wheel lands on. **Required.**      |
-| `value`             | `T`                                 | both     | Selected value. An unknown value selects the first row.                 |
-| `isEqual`           | `(a: T, b: T) => boolean`           | both     | Matches `value` against items. Defaults to `Object.is`.                 |
-| `style`             | `StyleProp<ViewStyle>`              | both     | Style of the view around the wheel.                                     |
-| `itemStyle`         | `StyleProp<TextStyle>`              | both     | Row text and wheel height; see below.                                   |
-| `selectionColor`    | `ColorValue`                        | both     | Fill of the band behind the selected row. Defaults to the system's.     |
-| `themeVariant`      | `'light' \| 'dark'`                 | both     | Forces light or dark default colors. Defaults to the system appearance. |
-| `testID`            | `string`                            | both     |                                                                         |
-| `wrapSelectorWheel` | `boolean`                           | Android  | Wrap around past the last row. Default `false`, as on iOS.              |
+| Prop                | Type                                | Platform | Description                                                                                   |
+| ------------------- | ----------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `items`             | `{ label: string; value: T }[]`     | both     | Rows of the wheel. **Required.**                                                              |
+| `onValueChange`     | `(value: T, index: number) => void` | both     | Called with the value of the row the wheel lands on. **Required.**                            |
+| `value`             | `T`                                 | both     | Selected value; an unknown one selects the first row. Leave it out for an uncontrolled wheel. |
+| `isEqual`           | `(a: T, b: T) => boolean`           | both     | Matches `value` against items. Defaults to `Object.is`.                                       |
+| `style`             | `StyleProp<ViewStyle>`              | both     | Style of the view around the wheel.                                                           |
+| `itemStyle`         | `StyleProp<TextStyle>`              | both     | Row text and wheel height; see below.                                                         |
+| `selectionColor`    | `ColorValue`                        | both     | Fill of the band behind the selected row. Defaults to the system's.                           |
+| `themeVariant`      | `'light' \| 'dark'`                 | both     | Forces light or dark default colors. Defaults to the system appearance.                       |
+| `testID`            | `string`                            | both     |                                                                                               |
+| `wrapSelectorWheel` | `boolean`                           | both     | Scroll endlessly: the first row follows the last. Default `false`.                            |
 
 `itemStyle` works the same on both platforms, following `@react-native-picker/picker` on iOS:
 
@@ -105,6 +105,15 @@ npm test
 npm run typecheck
 npm run lint
 npm run build   # writes lib/
+```
+
+[`example/`](example) is a playground app with toggles for every prop, the value and the item
+set. It runs the library from `src/`:
+
+```sh
+cd example && npm install
+npm run pods      # iOS only
+npm run android   # or: npm run ios
 ```
 
 ## Releasing
