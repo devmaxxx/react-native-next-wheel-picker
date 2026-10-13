@@ -2,21 +2,25 @@ import { requireNativeComponent } from 'react-native';
 import type { processColor, TextStyle } from 'react-native';
 import type { WheelPickerProps } from './types';
 
-// The Android parser only reads #RRGGBB, so colors cross the bridge already processed.
+// Colors cross the bridge already processed: an ARGB number, or a PlatformColor map.
 type NativeColor = ReturnType<typeof processColor>;
 
 export interface NativeWheelPickerProps extends Pick<
   WheelPickerProps<unknown>,
-  'testID' | 'wrapSelectorWheel' | 'itemSpacing'
+  'testID' | 'wrapSelectorWheel' | 'themeVariant'
 > {
   style?: WheelPickerProps<unknown>['style'];
-  itemStyle?: Omit<TextStyle, 'color'> & { color?: NativeColor };
-  dividerColor?: NativeColor;
+  // fontWeight goes as a string: the native side parses it like <Text> does.
+  itemStyle?: Omit<TextStyle, 'color' | 'fontWeight'> & {
+    color?: NativeColor;
+    fontWeight?: string;
+  };
+  selectionColor?: NativeColor;
   displayedValues: string[];
-  value: number;
-  minValue: number;
-  maxValue: number;
-  onValueChange: (event: { nativeEvent: { value: number; index: number } }) => void;
+  selectedIndex: number;
+  /** Count of the last change event JS has seen; the wheel ignores `selectedIndex` until it catches up. */
+  mostRecentEventCount: number;
+  onValueChange: (event: { nativeEvent: { index: number; eventCount: number } }) => void;
 }
 
 export const NativeWheelPicker =

@@ -1,4 +1,6 @@
-import { Platform, processColor, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import type { ComponentProps } from 'react';
+import { Platform, PlatformColor, processColor, StyleSheet, View } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeWheelPicker } from './NativeWheelPicker';
 import type { WheelPickerProps } from './types';
@@ -18,31 +20,46 @@ function AndroidWheelPicker<T>(props: WheelPickerProps<T>) {
     style,
     itemStyle,
     testID,
-    wrapSelectorWheel,
-    dividerColor,
-    itemSpacing,
+    wrapSelectorWheel = false,
+    selectionColor,
+    themeVariant,
   } = props;
 
-  const { color, ...restItemStyle } = StyleSheet.flatten(itemStyle) ?? {};
+  const {
+    color,
+    fontSize,
+    fontFamily,
+    fontWeight,
+    fontStyle,
+    height = WHEEL_HEIGHT,
+  } = StyleSheet.flatten(itemStyle) ?? {};
+  const labels = useMemo(() => items.map((item) => item.label), [items]);
+  // Echoed back so the wheel re-applies `value` after each change, as iOS
+  // does: a parent that rejects a change snaps the wheel back.
+  const [eventCount, setEventCount] = useState(0);
 
   return (
     <View style={[styles.clip, style]}>
       <NativeWheelPicker
         testID={testID}
         wrapSelectorWheel={wrapSelectorWheel}
-        dividerColor={dividerColor === undefined ? undefined : processColor(dividerColor)}
-        itemSpacing={itemSpacing}
-        style={styles.fill}
-        minValue={0}
-        maxValue={Math.max(items.length - 1, 0)}
-        value={selectedIndex(props)}
-        itemStyle={
-          color === undefined ? restItemStyle : { ...restItemStyle, color: processColor(color) }
-        }
-        displayedValues={items.map((item) => item.label)}
-        onValueChange={({ nativeEvent: { index } }) => {
-          const item = items[index];
-          if (item) onValueChange(item.value, index);
+        themeVariant={themeVariant}
+        selectionColor={selectionColor === undefined ? undefined : processColor(selectionColor)}
+        style={{ height }}
+        selectedIndex={selectedIndex(props)}
+        mostRecentEventCount={eventCount}
+        itemStyle={{
+          fontSize,
+          fontFamily,
+          fontWeight: fontWeight === undefined ? undefined : String(fontWeight),
+          fontStyle,
+          color: color === undefined ? undefined : processColor(color),
+        }}
+        displayedValues={labels}
+        onValueChange={({ nativeEvent }) => {
+          setEventCount(nativeEvent.eventCount);
+          const item = items[nativeEvent.index];
+          if (item) onValueChange(item.value, nativeEvent.index);
         }}
       />
     </View>
@@ -50,7 +67,7 @@ function AndroidWheelPicker<T>(props: WheelPickerProps<T>) {
 }
 
 function IOSWheelPicker<T>(props: WheelPickerProps<T>) {
-  const { items, onValueChange, style, itemStyle, testID } = props;
+  const { items, onValueChange, style, itemStyle, testID, selectionColor, themeVariant } = props;
   const flatItemStyle = StyleSheet.flatten(itemStyle) ?? {};
   // Picker.Item only takes a string. Other colors (PlatformColor, DynamicColorIOS)
   // still reach the rows through the picker's itemStyle, as does the system default.
@@ -62,9 +79,14 @@ function IOSWheelPicker<T>(props: WheelPickerProps<T>) {
     <Picker
       testID={testID}
       style={style}
+      selectionColor={selectionColor}
+      // Forwarded to the native picker; missing from Picker's typings.
+      {...({ themeVariant } as Partial<ComponentProps<typeof Picker>>)}
       // UIPickerView takes the label font off the picker itself. A style on
       // Picker.Item is Android-only and is dropped silently, leaving the wheel blank.
-      itemStyle={flatItemStyle}
+      // RNCPicker defaults to black, which is unreadable in dark mode; `label`
+      // follows the appearance, including a forced themeVariant.
+      itemStyle={{ color: PlatformColor('label'), ...flatItemStyle }}
       selectedValue={selectedIndex(props)}
       onValueChange={(_, index) => {
         const item = items[index];
@@ -86,7 +108,9 @@ export function WheelPicker<T>(props: WheelPickerProps<T>) {
   );
 }
 
+// @react-native-picker/picker's iOS default, overridden by itemStyle.height.
+const WHEEL_HEIGHT = 216;
+
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
-  fill: { flex: 1 },
 });

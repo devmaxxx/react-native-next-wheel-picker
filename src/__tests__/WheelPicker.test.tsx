@@ -1,4 +1,4 @@
-import { Platform, processColor, StyleSheet } from 'react-native';
+import { Platform, PlatformColor, processColor, StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { NumberPicker, WheelPicker } from '../index';
 import type { WheelPickerProps } from '../index';
@@ -82,6 +82,16 @@ describe('WheelPicker on iOS', () => {
     await renderPicker();
 
     expect(picker().props.items[0].textColor).toBeUndefined();
+    expect(StyleSheet.flatten(picker().props.style).color).toEqual(PlatformColor('label'));
+  });
+
+  it('passes the band color and theme to the native picker', async () => {
+    await renderPicker({ selectionColor: '#ff000080', themeVariant: 'dark' });
+
+    expect(picker().props).toMatchObject({
+      selectionColor: processColor('#ff000080'),
+      themeVariant: 'dark',
+    });
   });
 });
 
@@ -92,9 +102,7 @@ describe('WheelPicker on Android', () => {
     await renderPicker();
 
     expect(picker().props).toMatchObject({
-      minValue: 0,
-      maxValue: 2,
-      value: 1,
+      selectedIndex: 1,
       displayedValues: ['Small', 'Medium', 'Large'],
     });
   });
@@ -102,30 +110,69 @@ describe('WheelPicker on Android', () => {
   it('falls back to the first row when the value is unknown', async () => {
     await renderPicker({ value: { id: 99 } });
 
-    expect(picker().props.value).toBe(0);
+    expect(picker().props.selectedIndex).toBe(0);
   });
 
   it('translates the native index back into the item value', async () => {
     const { onValueChange } = await renderPicker();
 
-    await fireEvent(picker(), 'valueChange', { nativeEvent: { value: 2, index: 2 } });
+    await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 2, eventCount: 1 } });
 
     expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
   });
 
-  // Regression: the Android parser rejects #RGB and reads #RRGGBBAA as AARRGGBB,
+  // Regression: Color.parseColor rejects #RGB and reads #RRGGBBAA as AARRGGBB,
   // so colors are resolved in JS before they cross the bridge.
-  it('resolves item and divider colors to native color values', async () => {
-    await renderPicker({ itemStyle: { color: '#222' }, dividerColor: '#ff000080' });
+  it('resolves item and selection colors to native color values', async () => {
+    await renderPicker({ itemStyle: { color: '#222' }, selectionColor: '#ff000080' });
 
     expect(picker().props.itemStyle.color).toBe(processColor('#222'));
-    expect(picker().props.dividerColor).toBe(processColor('#ff000080'));
+    expect(picker().props.selectionColor).toBe(processColor('#ff000080'));
+  });
+
+  it('is 216 tall like the iOS wheel unless itemStyle sets a height', async () => {
+    await renderPicker();
+    expect(StyleSheet.flatten(picker().props.style)).toEqual({ height: 216 });
+
+    await renderPicker({ itemStyle: { height: 180 } });
+    expect(StyleSheet.flatten(picker().props.style)).toEqual({ height: 180 });
+  });
+
+  it('passes the font like iOS: family, weight as a string, style', async () => {
+    await renderPicker({
+      itemStyle: { fontFamily: 'Inter', fontWeight: 600, fontStyle: 'italic' },
+      themeVariant: 'light',
+    });
+
+    expect(picker().props.itemStyle).toMatchObject({
+      fontFamily: 'Inter',
+      fontWeight: '600',
+      fontStyle: 'italic',
+    });
+    expect(picker().props.themeVariant).toBe('light');
+  });
+
+  // The wheel re-applies `value` once JS has seen the change, so a parent
+  // that keeps its old value snaps the wheel back, as on iOS.
+  it('echoes the last event count back to the wheel', async () => {
+    await renderPicker();
+    expect(picker().props.mostRecentEventCount).toBe(0);
+
+    await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 2, eventCount: 3 } });
+
+    expect(picker().props).toMatchObject({ mostRecentEventCount: 3, selectedIndex: 1 });
+  });
+
+  it('does not wrap past the last row unless asked, like iOS', async () => {
+    await renderPicker();
+
+    expect(picker().props.wrapSelectorWheel).toBe(false);
   });
 
   it('ignores an index outside the items', async () => {
     const { onValueChange } = await renderPicker();
 
-    await fireEvent(picker(), 'valueChange', { nativeEvent: { value: 7, index: 7 } });
+    await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 7, eventCount: 1 } });
 
     expect(onValueChange).not.toHaveBeenCalled();
   });
@@ -145,9 +192,9 @@ describe('NumberPicker', () => {
       />
     );
 
-    expect(picker().props.value).toBe(1);
+    expect(picker().props.selectedIndex).toBe(1);
 
-    await fireEvent(picker(), 'valueChange', { nativeEvent: { value: 2, index: 2 } });
+    await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 2, eventCount: 1 } });
 
     expect(onValueChange).toHaveBeenCalledWith('08', 2);
   });

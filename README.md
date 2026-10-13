@@ -2,7 +2,8 @@
 
 A wheel picker for React Native that picks any value — numbers, strings, enums or objects.
 
-- **Android** — a native wheel built on [ShawnLin013/NumberPicker](https://github.com/ShawnLin013/NumberPicker).
+- **Android** — a native wheel drawn to look like iOS: rows on a 3D cylinder, faded toward the edges,
+  a rounded selection band, fling with snapping, a haptic tick per row, light and dark mode.
 - **iOS** — `UIPickerView` through [`@react-native-picker/picker`](https://github.com/react-native-picker/picker).
 - Same props on both platforms, fully typed, generic over the value type.
 
@@ -38,7 +39,6 @@ export function SizePicker() {
       items={SIZES}
       value={size}
       onValueChange={(value) => setSize(value)}
-      style={{ height: 200 }}
       itemStyle={{ fontSize: 22, color: '#222' }}
     />
   );
@@ -60,21 +60,26 @@ Values are matched with `Object.is`. For objects that are not the same reference
 
 ## Props
 
-| Prop                | Type                                | Platform | Description                                                        |
-| ------------------- | ----------------------------------- | -------- | ------------------------------------------------------------------ |
-| `items`             | `{ label: string; value: T }[]`     | both     | Rows of the wheel. **Required.**                                   |
-| `onValueChange`     | `(value: T, index: number) => void` | both     | Called with the value of the row the wheel lands on. **Required.** |
-| `value`             | `T`                                 | both     | Selected value. An unknown value selects the first row.            |
-| `isEqual`           | `(a: T, b: T) => boolean`           | both     | Matches `value` against items. Defaults to `Object.is`.            |
-| `style`             | `StyleProp<ViewStyle>`              | both     | Container style. Give the picker a height.                         |
-| `itemStyle`         | `StyleProp<TextStyle>`              | both     | `fontSize` and `color`; `fontFamily` on Android.                   |
-| `testID`            | `string`                            | both     |                                                                    |
-| `wrapSelectorWheel` | `boolean`                           | Android  | Wrap around at the ends. Default `true`.                           |
-| `dividerColor`      | `ColorValue`                        | Android  | Color of the selection dividers.                                   |
-| `itemSpacing`       | `number`                            | Android  | Space between rows.                                                |
+| Prop                | Type                                | Platform | Description                                                             |
+| ------------------- | ----------------------------------- | -------- | ----------------------------------------------------------------------- |
+| `items`             | `{ label: string; value: T }[]`     | both     | Rows of the wheel. **Required.**                                        |
+| `onValueChange`     | `(value: T, index: number) => void` | both     | Called with the value of the row the wheel lands on. **Required.**      |
+| `value`             | `T`                                 | both     | Selected value. An unknown value selects the first row.                 |
+| `isEqual`           | `(a: T, b: T) => boolean`           | both     | Matches `value` against items. Defaults to `Object.is`.                 |
+| `style`             | `StyleProp<ViewStyle>`              | both     | Style of the view around the wheel.                                     |
+| `itemStyle`         | `StyleProp<TextStyle>`              | both     | Row text and wheel height; see below.                                   |
+| `selectionColor`    | `ColorValue`                        | both     | Fill of the band behind the selected row. Defaults to the system's.     |
+| `themeVariant`      | `'light' \| 'dark'`                 | both     | Forces light or dark default colors. Defaults to the system appearance. |
+| `testID`            | `string`                            | both     |                                                                         |
+| `wrapSelectorWheel` | `boolean`                           | Android  | Wrap around past the last row. Default `false`, as on iOS.              |
 
-On Android, `itemStyle.fontFamily` loads `assets/fonts/<name>.otf` first and falls back to a system
-font of that name.
+`itemStyle` works the same on both platforms, following `@react-native-picker/picker` on iOS:
+
+- `fontSize` (default 21), `color`, `fontFamily`, `fontWeight` and `fontStyle` style the rows.
+  Android resolves the font like `<Text>` does.
+- `height` is the wheel's height, default 216. Each row is the font's line height plus 20.
+
+A parent that ignores a change, by keeping its old `value`, snaps the wheel back on both platforms.
 
 ## Migrating from `NumberPicker`
 
