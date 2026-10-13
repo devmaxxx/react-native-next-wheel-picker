@@ -1,0 +1,113 @@
+{
+  "name": "react-native-next-wheel-picker",
+  "version": "1.0.0",
+  "description": "Wheel picker for React Native: native Android NumberPicker wheel, UIPickerView on iOS, any value type",
+  "main": "./lib/module/index.js",
+  "types": "./lib/typescript/src/index.d.ts",
+  "react-native": "./src/index.ts",
+  "source": "./src/index.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./lib/typescript/src/index.d.ts",
+      "default": "./lib/module/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "react-native.config.js",
+    "!android/build",
+    "!android/.gradle",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "build": "bob build",
+    "prepare": "bob build",
+    "prepublishOnly": "npm run typecheck && npm run lint && npm test"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android",
+    "picker",
+    "wheel",
+    "wheel-picker",
+    "numberpicker",
+    "select"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devmaxxx/react-native-next-wheel-picker.git"
+  },
+  "author": "devmaxxx (https://github.com/devmaxxx)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devmaxxx/react-native-next-wheel-picker/issues"
+  },
+  "homepage": "https://github.com/devmaxxx/react-native-next-wheel-picker#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@react-native-picker/picker": ">=2.0.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.73.0"
+  },
+  "devDependencies": {
+    "@react-native-picker/picker": "2.11.4",
+    "@react-native/babel-preset": "0.83.10",
+    "@testing-library/react-native": "14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "19.2.18",
+    "eslint": "9.39.1",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "jest": "30.3.0",
+    "prettier": "3.9.10",
+    "react": "19.2.0",
+    "react-native": "0.83.10",
+    "react-native-builder-bob": "0.43.2",
+    "react-test-renderer": "19.2.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false,
+    "printWidth": 100
+  }
+}
