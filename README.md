@@ -81,22 +81,6 @@ Values are matched with `Object.is`. For objects that are not the same reference
 
 A parent that ignores a change, by keeping its old `value`, snaps the wheel back on both platforms.
 
-## Migrating from `NumberPicker`
-
-`NumberPicker` (string values in `displayedValues`) still ships, deprecated:
-
-```tsx
-// before
-<NumberPicker displayedValues={['06', '07']} value={hour} onValueChange={setHour} />
-
-// after
-<WheelPicker
-  items={['06', '07'].map((h) => ({ label: h, value: h }))}
-  value={hour}
-  onValueChange={setHour}
-/>
-```
-
 ## Development
 
 ```sh
