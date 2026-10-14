@@ -6,8 +6,8 @@ First release.
 
 - `WheelPicker<T>` takes `items: { label, value: T }[]` and reports `T`, so values can be numbers,
   strings, enums or objects. `isEqual` matches object values.
-- iOS uses the native UIPickerView. Android draws a native Kotlin wheel like it: a 3D cylinder,
-  faded edges, a capsule selection band and a haptic tick.
+- No native dependencies. iOS draws its own UIPickerView; Android draws a Kotlin wheel like it: a
+  3D cylinder, faded edges, a capsule selection band and a haptic tick.
 - Both platforms take the same styling: `selectionColor` colors the band, `themeVariant` forces light
   or dark, and `itemStyle` sets `fontSize` (default 21), `color`, `fontFamily`, `fontWeight`,
   `fontStyle` and the wheel `height` (default 216). Rows are the line height plus 20.

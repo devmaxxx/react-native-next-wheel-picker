@@ -18,7 +18,8 @@
     "src",
     "lib",
     "android",
-    "react-native.config.js",
+    "ios",
+    "*.podspec",
     "!android/build",
     "!android/.gradle",
     "!**/__tests__",
@@ -63,12 +64,10 @@
     "node": ">=20"
   },
   "peerDependencies": {
-    "@react-native-picker/picker": ">=2.0.0",
     "react": ">=18.0.0",
     "react-native": ">=0.73.0"
   },
   "devDependencies": {
-    "@react-native-picker/picker": "2.11.4",
     "@react-native/babel-preset": "0.83.10",
     "@testing-library/react-native": "14.1.0",
     "@types/jest": "30.0.0",

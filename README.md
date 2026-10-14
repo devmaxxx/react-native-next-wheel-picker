@@ -4,18 +4,17 @@ A wheel picker for React Native that picks any value — numbers, strings, enums
 
 - **Android** — a native wheel drawn to look like iOS: rows on a 3D cylinder, faded toward the edges,
   a rounded selection band, fling with snapping, a haptic tick per row, light and dark mode.
-- **iOS** — `UIPickerView` through [`@react-native-picker/picker`](https://github.com/react-native-picker/picker).
+- **iOS** — a native `UIPickerView`.
 - Same props on both platforms, fully typed, generic over the value type.
 
 ## Installation
 
 ```sh
-npm install react-native-next-wheel-picker @react-native-picker/picker
+npm install react-native-next-wheel-picker
 cd ios && pod install
 ```
 
-The Android view autolinks. iOS has no native code of its own; the pod comes from
-`@react-native-picker/picker`.
+Both platforms autolink; there are no other native dependencies.
 
 Requires React Native 0.73 or newer (Android builds with JDK 17).
 
@@ -73,10 +72,10 @@ Values are matched with `Object.is`. For objects that are not the same reference
 | `testID`            | `string`                            | both     |                                                                                               |
 | `wrapSelectorWheel` | `boolean`                           | both     | Scroll endlessly: the first row follows the last. Default `false`.                            |
 
-`itemStyle` works the same on both platforms, following `@react-native-picker/picker` on iOS:
+`itemStyle` works the same on both platforms:
 
 - `fontSize` (default 21), `color`, `fontFamily`, `fontWeight` and `fontStyle` style the rows.
-  Android resolves the font like `<Text>` does.
+  The font resolves like `<Text>` does.
 - `height` is the wheel's height, default 216. Each row is the font's line height plus 20.
 
 A parent that ignores a change, by keeping its old `value`, snaps the wheel back on both platforms.

@@ -1,13 +1,7 @@
-import { Platform, PlatformColor, processColor, StyleSheet } from 'react-native';
+import { PlatformColor, processColor, StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { WheelPicker } from '../index';
 import type { WheelPickerProps } from '../index';
-
-// The picker branches on Platform.OS, and jest's react-native preset resolves
-// Platform to the iOS build, so the OS is set per test instead of mocked.
-const setPlatformOS = (os: 'android' | 'ios') => {
-  Object.defineProperty(Platform, 'OS', { configurable: true, value: os });
-};
 
 type Size = { id: number };
 const SMALL: Size = { id: 1 };
@@ -35,23 +29,14 @@ const renderPicker = async (props: Partial<WheelPickerProps<Size>> = {}) => {
 
 const picker = () => screen.getByTestId('picker');
 
-describe('WheelPicker on iOS', () => {
-  beforeEach(() => setPlatformOS('ios'));
-
-  it('gives the wheel one row per item label', async () => {
+describe('WheelPicker', () => {
+  it('spans the items and starts on the selected one', async () => {
     await renderPicker();
 
-    expect(picker().props.items.map((item: { label: string }) => item.label)).toEqual([
-      'Small',
-      'Medium',
-      'Large',
-    ]);
-  });
-
-  it('starts on the selected value', async () => {
-    await renderPicker();
-
-    expect(picker().props.selectedIndex).toBe(1);
+    expect(picker().props).toMatchObject({
+      selectedIndex: 1,
+      displayedValues: ['Small', 'Medium', 'Large'],
+    });
   });
 
   it('matches object values with isEqual', async () => {
@@ -60,68 +45,12 @@ describe('WheelPicker on iOS', () => {
     expect(picker().props.selectedIndex).toBe(2);
   });
 
-  it('reports the item value the wheel lands on', async () => {
-    const { onValueChange } = await renderPicker();
-
-    await fireEvent(picker(), 'change', { nativeEvent: { newValue: 2, newIndex: 2 } });
-
-    expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
-  });
-
-  // Regression: itemStyle on Picker.Item is Android-only and left the iOS wheel blank.
-  it('styles the labels through the picker itself', async () => {
-    await renderPicker({ itemStyle: { fontSize: 27, color: '#495358' } });
-
-    expect(StyleSheet.flatten(picker().props.style)).toMatchObject({
-      fontSize: 27,
-      color: '#495358',
-    });
-  });
-
-  it('leaves the label color to the system when none is given', async () => {
-    await renderPicker();
-
-    expect(picker().props.items[0].textColor).toBeUndefined();
-    expect(StyleSheet.flatten(picker().props.style).color).toEqual(PlatformColor('label'));
-  });
-
-  // UIPickerView cannot wrap: the items repeat and the wheel stays on the
-  // copy the user scrolled to.
-  it('wraps by repeating the items and keeps the copy the user is on', async () => {
-    const { onValueChange } = await renderPicker({ wrapSelectorWheel: true });
-    const rows = picker().props.items.length;
-    const start = picker().props.selectedIndex;
-
-    expect(rows).toBeGreaterThanOrEqual(1000);
-    expect(start % 3).toBe(1);
-    expect(start).toBeGreaterThan(rows / 3);
-
-    // One row past the last item of this copy: the first item of the next.
-    const next = start + 2;
-    await fireEvent(picker(), 'change', { nativeEvent: { newIndex: next, newValue: next } });
-
-    expect(onValueChange).toHaveBeenCalledWith(SMALL, 0);
-  });
-
-  it('passes the band color and theme to the native picker', async () => {
-    await renderPicker({ selectionColor: '#ff000080', themeVariant: 'dark' });
+  it('passes a system label color and the theme through', async () => {
+    await renderPicker({ itemStyle: { color: PlatformColor('label') }, themeVariant: 'dark' });
 
     expect(picker().props).toMatchObject({
-      selectionColor: processColor('#ff000080'),
       themeVariant: 'dark',
-    });
-  });
-});
-
-describe('WheelPicker on Android', () => {
-  beforeEach(() => setPlatformOS('android'));
-
-  it('spans the items and starts on the selected one', async () => {
-    await renderPicker();
-
-    expect(picker().props).toMatchObject({
-      selectedIndex: 1,
-      displayedValues: ['Small', 'Medium', 'Large'],
+      itemStyle: { color: processColor(PlatformColor('label')) },
     });
   });
 
