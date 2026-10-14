@@ -31,8 +31,3 @@ export interface WheelPickerProps<T> {
   /** Scroll endlessly: the first row follows the last. Default `false`. */
   wrapSelectorWheel?: boolean;
 }
-
-/** @deprecated Use `WheelPickerProps` with `items`. */
-export interface NumberPickerProps extends Omit<WheelPickerProps<string>, 'items' | 'isEqual'> {
-  displayedValues: string[];
-}

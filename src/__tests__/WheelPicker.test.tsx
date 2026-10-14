@@ -1,6 +1,6 @@
 import { Platform, PlatformColor, processColor, StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { NumberPicker, WheelPicker } from '../index';
+import { WheelPicker } from '../index';
 import type { WheelPickerProps } from '../index';
 
 // The picker branches on Platform.OS, and jest's react-native preset resolves
@@ -204,27 +204,5 @@ describe('WheelPicker on Android', () => {
     await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 7, eventCount: 1 } });
 
     expect(onValueChange).not.toHaveBeenCalled();
-  });
-});
-
-describe('NumberPicker', () => {
-  beforeEach(() => setPlatformOS('android'));
-
-  it('keeps the string API: displayed values in, the picked string out', async () => {
-    const onValueChange = jest.fn();
-    await render(
-      <NumberPicker
-        testID="picker"
-        value="07"
-        displayedValues={['06', '07', '08']}
-        onValueChange={onValueChange}
-      />
-    );
-
-    expect(picker().props.selectedIndex).toBe(1);
-
-    await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 2, eventCount: 1 } });
-
-    expect(onValueChange).toHaveBeenCalledWith('08', 2);
   });
 });
