@@ -7,6 +7,14 @@ A wheel picker for React Native that picks any value — numbers, strings, enums
 - **iOS** — a native `UIPickerView`.
 - Same props on both platforms, fully typed, generic over the value type.
 
+| iOS                                            | Android                                                |
+| ---------------------------------------------- | ------------------------------------------------------ |
+| <img src="docs/ios.gif" width="280" alt="iOS"> | <img src="docs/android.gif" width="280" alt="Android"> |
+
+Both recordings come from the [example app](example): two wheels share one controlled value, so
+scrolling either moves the other, and the **First**, **Last** and **Random** buttons set the value
+from outside.
+
 ## Installation
 
 ```sh
@@ -43,6 +51,35 @@ export function SizePicker() {
   );
 }
 ```
+
+### Setting the value from outside
+
+A controlled wheel follows `value`: change it from anywhere and the wheel scrolls to the matching
+row. This is what the **First**, **Last** and **Random** buttons in the recordings do:
+
+```tsx
+const MINUTES = Array.from({ length: 60 }, (_, i) => ({
+  label: String(i).padStart(2, '0'),
+  value: i,
+}));
+
+export function MinutePicker() {
+  const [minute, setMinute] = useState(0);
+
+  return (
+    <>
+      <WheelPicker items={MINUTES} value={minute} onValueChange={setMinute} />
+      <Button title="First" onPress={() => setMinute(0)} />
+      <Button title="Last" onPress={() => setMinute(59)} />
+      <Button title="Random" onPress={() => setMinute(Math.floor(Math.random() * 60))} />
+    </>
+  );
+}
+```
+
+`onValueChange` fires only when the user scrolls, not when `value` changes from outside.
+
+Leave `value` out for an uncontrolled wheel: it starts on the first row and keeps its own position.
 
 ### Object values
 
@@ -98,6 +135,17 @@ cd example && npm install
 npm run pods      # iOS only
 npm run android   # or: npm run ios
 ```
+
+The GIFs in `docs/` are recorded from the example app. With Metro running, the app installed and
+`ffmpeg` and [`axe`](https://github.com/cameroncooke/AXe) on the path, these scripts replay the same
+gestures and rewrite the GIFs:
+
+```sh
+scripts/gifs/record-ios.sh       # booted iPhone 17 Pro simulator
+scripts/gifs/record-android.sh   # running 1080x2280 emulator
+```
+
+The taps and swipes use fixed coordinates, so other screen sizes need new ones.
 
 ## Releasing
 
