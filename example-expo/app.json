@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Wheel Picker",
-    "slug": "wheel-picker-expo-example",
+    "slug": "react-native-next-wheel-picker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.devmaxxx.wheelpicker.expo"
@@ -21,7 +21,23 @@
       "package": "com.devmaxxx.wheelpicker.expo"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "owner": "devmaxxxx",
+    "extra": {
+      "eas": {
+        "projectId": "09eaa12d-b1e9-469f-9c02-73f5c59be564"
+      }
+    },
+    "experiments": {
+      "baseUrl": "/react-native-next-wheel-picker"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/09eaa12d-b1e9-469f-9c02-73f5c59be564"
     }
   }
 }

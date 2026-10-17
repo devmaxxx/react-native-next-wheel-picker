@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WheelPicker } from 'react-native-next-wheel-picker';
+import { WebFrame } from './WebFrame';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const range = (length: number) => Array.from({ length }, (_, i) => ({ label: pad(i), value: i }));
@@ -52,6 +53,8 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]['key'];
 
+// The demo's screens are light except Styled, so every wheel sets its scheme instead of following a
+// dark system appearance.
 export default function App() {
   const [tab, setTab] = useState<Tab>('time');
   const dark = tab === 'styled';
@@ -59,18 +62,20 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style={dark ? 'light' : 'dark'} />
-      <SafeAreaView
-        edges={['top', 'left', 'right']}
-        style={[styles.screen, dark && styles.screenDark]}
-      >
-        <View style={styles.page}>
-          {tab === 'time' && <TimeDemo />}
-          {tab === 'strings' && <StringsDemo />}
-          {tab === 'objects' && <ObjectsDemo />}
-          {tab === 'styled' && <StyledDemo />}
-        </View>
-        <TabBar tab={tab} onChange={setTab} dark={dark} />
-      </SafeAreaView>
+      <WebFrame dark={dark}>
+        <SafeAreaView
+          edges={['top', 'left', 'right']}
+          style={[styles.screen, dark && styles.screenDark]}
+        >
+          <View style={styles.page}>
+            {tab === 'time' && <TimeDemo />}
+            {tab === 'strings' && <StringsDemo />}
+            {tab === 'objects' && <ObjectsDemo />}
+            {tab === 'styled' && <StyledDemo />}
+          </View>
+          <TabBar tab={tab} onChange={setTab} dark={dark} />
+        </SafeAreaView>
+      </WebFrame>
     </SafeAreaProvider>
   );
 }
@@ -95,13 +100,23 @@ function TimeDemo() {
       ]}
     >
       <View style={styles.row}>
-        <WheelPicker style={styles.flex} items={HOURS} value={hour} onValueChange={setHour} loop />
+        <WheelPicker
+          style={styles.flex}
+          items={HOURS}
+          accessibilityLabel="Hour"
+          value={hour}
+          onValueChange={setHour}
+          colorScheme="light"
+          loop
+        />
         <Text style={styles.colon}>:</Text>
         <WheelPicker
           style={styles.flex}
           items={MINUTES}
+          accessibilityLabel="Minute"
           value={minute}
           onValueChange={setMinute}
+          colorScheme="light"
           loop
         />
       </View>
@@ -118,7 +133,7 @@ function StringsDemo() {
       value={`'${fruit}'`}
       actions={pickActions(FRUITS, setFruit)}
     >
-      <WheelPicker items={FRUITS} value={fruit} onValueChange={setFruit} />
+      <WheelPicker items={FRUITS} value={fruit} onValueChange={setFruit} colorScheme="light" />
     </Demo>
   );
 }
@@ -138,6 +153,7 @@ function ObjectsDemo() {
         value={city}
         keyExtractor={(c) => c.id}
         onValueChange={setCity}
+        colorScheme="light"
       />
     </Demo>
   );

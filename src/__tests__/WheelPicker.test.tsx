@@ -1,4 +1,4 @@
-import { PlatformColor, processColor, StyleSheet } from 'react-native';
+import { PlatformColor, processColor, ScrollView, StyleSheet, UIManager } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { WheelPicker } from '../index';
 import type { WheelPickerProps } from '../index';
@@ -29,7 +29,18 @@ const renderPicker = async (props: Partial<WheelPickerProps<Size>> = {}) => {
 
 const picker = () => screen.getByTestId('picker');
 
+const withNativeView = (available: boolean) => {
+  beforeEach(() => {
+    jest
+      .spyOn(UIManager, 'hasViewManagerConfig')
+      .mockImplementation((name) => available && name === 'RNNextWheelPicker');
+  });
+  afterEach(() => jest.restoreAllMocks());
+};
+
 describe('WheelPicker', () => {
+  withNativeView(true);
+
   it('spans the items and starts on the selected one', async () => {
     await renderPicker();
 
@@ -141,5 +152,85 @@ describe('WheelPicker', () => {
     await fireEvent(picker(), 'valueChange', { nativeEvent: { index: 7, eventCount: 1 } });
 
     expect(onValueChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('WheelPicker without the native view', () => {
+  withNativeView(false);
+
+  // 21pt rows: a line height of 25 plus 20.
+  const ROW = 45;
+  const scroll = () => screen.getByTestId('picker.scroll', { includeHiddenElements: true });
+  const settleOn = (row: number) =>
+    fireEvent(scroll(), 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: row * ROW } },
+    });
+
+  it('falls back to the JS wheel on the selected row', async () => {
+    await renderPicker();
+
+    expect(screen.getByText('Large', { includeHiddenElements: true })).toBeTruthy();
+    expect(scroll().props.contentOffset).toEqual({ x: 0, y: ROW });
+  });
+
+  it('reports the row the wheel settles on', async () => {
+    const { onValueChange } = await renderPicker();
+
+    await settleOn(2);
+
+    expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
+  });
+
+  it('reports nothing when the wheel settles back on the selected row', async () => {
+    const { onValueChange } = await renderPicker();
+
+    await settleOn(1);
+
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it('repeats the items when looping and reports the row within its copy', async () => {
+    const { onValueChange } = await renderPicker({ loop: true });
+    expect(screen.getAllByText('Small', { includeHiddenElements: true }).length).toBeGreaterThan(1);
+
+    await settleOn(3 + 2);
+
+    expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
+  });
+
+  it('snaps back when the parent keeps its value', async () => {
+    await renderPicker({ value: MEDIUM });
+    const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    await settleOn(2);
+
+    expect(scrollTo).toHaveBeenCalledWith({ y: ROW, animated: true });
+  });
+
+  it('turns to a row tapped on', async () => {
+    const { onValueChange } = await renderPicker();
+
+    await fireEvent.press(screen.getByText('Large', { includeHiddenElements: true }));
+
+    expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
+  });
+
+  it('turns a looping wheel the short way round to a new value', async () => {
+    const props = { testID: 'picker', items: ITEMS, onValueChange: jest.fn(), loop: true };
+    const { rerender } = await render(<WheelPicker {...props} value={LARGE} />);
+    const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    await rerender(<WheelPicker {...props} value={SMALL} />);
+
+    // Eleven copies of three items: Large rests on row 17 of the middle copy, and Small follows it.
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 18 * ROW, animated: true });
+  });
+
+  it('steps with the accessibility actions', async () => {
+    const { onValueChange } = await renderPicker();
+
+    await fireEvent(picker(), 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+
+    expect(onValueChange).toHaveBeenCalledWith(LARGE, 2);
   });
 });

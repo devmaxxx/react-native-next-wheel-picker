@@ -1,7 +1,7 @@
 {
   "name": "react-native-next-wheel-picker",
   "version": "1.0.0",
-  "description": "Wheel picker for React Native: native Android wheel drawn like iOS, UIPickerView on iOS, any value type",
+  "description": "Native wheel picker for React Native and Expo: UIPickerView on iOS, an iOS-style wheel on Android, typed values of any kind.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "react-native": "./src/index.ts",
@@ -38,13 +38,15 @@
   },
   "keywords": [
     "react-native",
+    "expo",
+    "wheel-picker",
+    "picker",
     "ios",
     "android",
-    "picker",
-    "wheel",
-    "wheel-picker",
-    "numberpicker",
-    "select"
+    "uipickerview",
+    "time-picker",
+    "react-native-component",
+    "typescript"
   ],
   "repository": {
     "type": "git",

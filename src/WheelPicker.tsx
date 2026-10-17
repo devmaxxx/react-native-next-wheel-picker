@@ -1,15 +1,12 @@
 import { useMemo, useState } from 'react';
-import { processColor, StyleSheet, View } from 'react-native';
+import { processColor, StyleSheet, UIManager, View } from 'react-native';
+import { JsWheel } from './JsWheel';
 import { NativeWheelPicker } from './NativeWheelPicker';
 import type { WheelPickerProps } from './types';
+import { WHEEL_HEIGHT } from './wheelProps';
+import type { WheelProps } from './wheelProps';
 
-// The native wheel works in row indexes; WheelPicker maps them to values.
-type NativeWheelProps<T> = Omit<WheelPickerProps<T>, 'value' | 'keyExtractor' | 'onValueChange'> & {
-  selectedIndex: number;
-  onIndexChange: (index: number) => void;
-};
-
-function NativeWheel<T>(props: NativeWheelProps<T>) {
+function NativeWheel<T>(props: WheelProps<T>) {
   const {
     items,
     selectedIndex,
@@ -17,6 +14,7 @@ function NativeWheel<T>(props: NativeWheelProps<T>) {
     style,
     itemStyle,
     testID,
+    accessibilityLabel,
     loop = false,
     selectionColor,
     colorScheme,
@@ -39,6 +37,7 @@ function NativeWheel<T>(props: NativeWheelProps<T>) {
     <View style={[styles.clip, style]}>
       <NativeWheelPicker
         testID={testID}
+        accessibilityLabel={accessibilityLabel}
         wrapSelectorWheel={loop}
         themeVariant={colorScheme}
         // Processed by the view config (the native prop is a Color); processing
@@ -88,7 +87,9 @@ export function WheelPicker<T>({
     onValueChange(item.value, index);
   };
 
-  return <NativeWheel {...props} selectedIndex={selectedIndex} onIndexChange={onIndexChange} />;
+  // Expo Go, the web and other hosts built without this package's native code get the JS wheel.
+  const Wheel = UIManager.hasViewManagerConfig?.('RNNextWheelPicker') ? NativeWheel : JsWheel;
+  return <Wheel {...props} selectedIndex={selectedIndex} onIndexChange={onIndexChange} />;
 }
 
 function findIndex<T>(
@@ -100,9 +101,6 @@ function findIndex<T>(
   const key = keyExtractor(value);
   return items.findIndex((item) => Object.is(keyExtractor(item.value), key));
 }
-
-// UIPickerView's default height, overridden by itemStyle.height.
-const WHEEL_HEIGHT = 216;
 
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },

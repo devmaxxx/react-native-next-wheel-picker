@@ -6,6 +6,9 @@ First release.
 
 - `WheelPicker<T>` takes `items: { label, value: T }[]` and reports `T`, so values can be numbers,
   strings, enums or objects. `keyExtractor` matches object values by an identity such as an id.
+- Where the native view is missing (Expo Go, Snack, the web) the same component renders a JS
+  wheel with the same props.
+- `accessibilityLabel` names the wheel for screen readers.
 - No native dependencies. iOS draws its own UIPickerView; Android draws a Kotlin wheel like it: a
   3D cylinder, faded edges, a capsule selection band and a haptic tick.
 - Both platforms take the same styling: `selectionColor` colors the band, `colorScheme` forces light

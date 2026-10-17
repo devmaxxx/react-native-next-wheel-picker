@@ -1,15 +1,21 @@
 {
-  "name": "wheel-picker-expo-example",
+  "name": "react-native-next-wheel-picker-example-expo",
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo/metro-runtime": "~58.0.14",
     "expo": "~58.0.14",
     "expo-status-bar": "~58.0.3",
+    "expo-updates": "~58.0.17",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-native": "0.88.0",
-    "react-native-safe-area-context": "~5.10.1"
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-web": "^0.21.4"
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.5",
     "@types/react": "~19.3.0",
     "typescript": "~6.0.3"
   },
@@ -17,7 +23,9 @@
     "start": "expo start",
     "ios": "expo run:ios",
     "android": "expo run:android",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "web": "expo start --web",
+    "build:web": "expo export --platform web"
   },
   "private": true
 }

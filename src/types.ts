@@ -41,6 +41,8 @@ export interface WheelPickerProps<T> {
   /** Forces light or dark default colors. Defaults to the system appearance. */
   colorScheme?: 'light' | 'dark';
   testID?: string;
+  /** What the wheel picks, read by screen readers before the value, e.g. "Hour". */
+  accessibilityLabel?: string;
   /** Scroll endlessly: the first row follows the last. Default `false`. */
   loop?: boolean;
 }
