@@ -16,6 +16,7 @@ export default tseslint.config(
       'example-expo/android/',
       'example-expo/ios/',
       'example-expo/.expo/',
+      'example-expo/dist/',
     ],
   },
   ...tseslint.configs.recommended,

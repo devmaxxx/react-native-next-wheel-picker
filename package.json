@@ -1,6 +1,6 @@
 {
   "name": "react-native-next-wheel-picker",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Native wheel picker for React Native and Expo: UIPickerView on iOS, an iOS-style wheel on Android, typed values of any kind.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
