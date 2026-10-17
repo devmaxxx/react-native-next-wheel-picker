@@ -3,3 +3,6 @@ coverage/
 example/android/
 example/ios/
 example/vendor/
+example-expo/android/
+example-expo/ios/
+example-expo/.expo/

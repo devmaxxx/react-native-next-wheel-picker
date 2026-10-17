@@ -49,17 +49,17 @@ export function App() {
   const [log, setLog] = useState<LogEntry[]>([]);
   const nextLogId = useRef(0);
 
-  const [themeVariant, setThemeVariant] = useState<Props['themeVariant']>();
+  const [colorScheme, setColorScheme] = useState<Props['colorScheme']>();
   const [selectionColor, setSelectionColor] = useState<string>();
   const [color, setColor] = useState<string>();
   const [fontSize, setFontSize] = useState(21);
   const [fontWeight, setFontWeight] = useState<TextStyle['fontWeight']>();
   const [italic, setItalic] = useState(false);
   const [height, setHeight] = useState(216);
-  const [wrap, setWrap] = useState(false);
+  const [loop, setLoop] = useState(false);
 
   const systemScheme = useColorScheme();
-  const theme = themes[themeVariant ?? (systemScheme === 'dark' ? 'dark' : 'light')];
+  const theme = themes[colorScheme ?? (systemScheme === 'dark' ? 'dark' : 'light')];
 
   const pickSet = (key: ItemSetKey) => {
     setSetKey(key);
@@ -93,7 +93,7 @@ export function App() {
                 <WheelPicker
                   key={setKey}
                   items={set.items}
-                  isEqual={'isEqual' in set ? set.isEqual : undefined}
+                  keyExtractor={'keyExtractor' in set ? set.keyExtractor : undefined}
                   value={controlled ? value : undefined}
                   onValueChange={onValueChange}
                 />
@@ -106,12 +106,12 @@ export function App() {
                   key={setKey}
                   testID="wheel"
                   items={set.items}
-                  isEqual={'isEqual' in set ? set.isEqual : undefined}
+                  keyExtractor={'keyExtractor' in set ? set.keyExtractor : undefined}
                   value={controlled ? value : undefined}
                   onValueChange={onValueChange}
-                  themeVariant={themeVariant}
+                  colorScheme={colorScheme}
                   selectionColor={selectionColor}
-                  wrapSelectorWheel={wrap}
+                  loop={loop}
                   itemStyle={{
                     fontSize,
                     color,
@@ -172,12 +172,8 @@ export function App() {
             </Section>
 
             <Section title="Look">
-              <Row label="Theme">
-                <Segmented
-                  options={THEME_OPTIONS}
-                  value={themeVariant}
-                  onChange={setThemeVariant}
-                />
+              <Row label="Color scheme">
+                <Segmented options={THEME_OPTIONS} value={colorScheme} onChange={setColorScheme} />
               </Row>
               <Row label="Band">
                 <Segmented
@@ -201,8 +197,8 @@ export function App() {
               <Row label="Height">
                 <Segmented options={HEIGHT_OPTIONS} value={height} onChange={setHeight} />
               </Row>
-              <Row label="Infinite scroll">
-                <Toggle value={wrap} onChange={setWrap} />
+              <Row label="Loop">
+                <Toggle value={loop} onChange={setLoop} />
               </Row>
             </Section>
           </ScrollView>

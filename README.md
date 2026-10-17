@@ -1,19 +1,54 @@
+<div align="center">
+
 # react-native-next-wheel-picker
 
-A wheel picker for React Native that picks any value — numbers, strings, enums or objects.
+**A native wheel picker for React Native that picks any value: numbers, strings, enums or objects.**
 
-- **Android** — a native wheel drawn to look like iOS: rows on a 3D cylinder, faded toward the edges,
-  a rounded selection band, fling with snapping, a haptic tick per row, light and dark mode.
-- **iOS** — a native `UIPickerView`.
-- Same props on both platforms, fully typed, generic over the value type.
+[![npm version](https://img.shields.io/npm/v/react-native-next-wheel-picker.svg)](https://www.npmjs.com/package/react-native-next-wheel-picker)
+[![CI](https://github.com/devmaxxx/react-native-next-wheel-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/devmaxxx/react-native-next-wheel-picker/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/react-native-next-wheel-picker.svg)](LICENSE)
+![platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey.svg)
+![TypeScript](https://img.shields.io/badge/types-TypeScript-blue.svg)
+![Expo](https://img.shields.io/badge/Expo-dev%20build-000020.svg)
 
-| iOS                                            | Android                                                |
-| ---------------------------------------------- | ------------------------------------------------------ |
-| <img src="docs/ios.gif" width="280" alt="iOS"> | <img src="docs/android.gif" width="280" alt="Android"> |
+|                      iOS                       |                        Android                         |
+| :--------------------------------------------: | :----------------------------------------------------: |
+| <img src="docs/ios.gif" width="260" alt="iOS"> | <img src="docs/android.gif" width="260" alt="Android"> |
 
-Both recordings come from the [example app](example): two wheels share one controlled value, so
-scrolling either moves the other, and the **First**, **Last** and **Random** buttons set the value
-from outside.
+<sub>Recorded from the <a href="example-expo">Expo demo</a>: flicking the wheels, setting the value
+from outside, and the string, object and styled tabs.</sub>
+
+</div>
+
+## Why this picker
+
+- 🎡 **Native on both platforms.** iOS uses `UIPickerView`. Android draws its own wheel to look like
+  iOS: rows on a 3D cylinder, faded edges, a rounded selection band, fling with snapping and a
+  haptic tick per row.
+- 🧬 **Any value type.** `WheelPicker<T>` is generic: give it numbers, string unions, enums or
+  objects and `onValueChange` hands back the same `T`, fully typed.
+- 🎛️ **Controlled or uncontrolled.** Set the value from outside and the wheel scrolls to it. Keep the
+  old value and the wheel snaps back.
+- ♾️ **Infinite scroll** with `loop`, on both platforms.
+- 🎨 **One styling API.** `itemStyle`, `selectionColor` and `colorScheme` behave the same on iOS and
+  Android, light and dark.
+- 📦 **No dependencies.** Nothing to install besides the package itself, and it autolinks.
+
+## Contents
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Recipes](#recipes)
+  - [Setting the value from outside](#setting-the-value-from-outside)
+  - [Rejecting a change](#rejecting-a-change)
+  - [Uncontrolled](#uncontrolled)
+  - [Objects](#objects)
+  - [Time picker with infinite scroll](#time-picker-with-infinite-scroll)
+  - [Styling and dark mode](#styling-and-dark-mode)
+- [API](#api)
+- [Examples](#examples)
+- [Development](#development)
+- [License](#license)
 
 ## Installation
 
@@ -22,11 +57,20 @@ npm install react-native-next-wheel-picker
 cd ios && pod install
 ```
 
-Both platforms autolink; there are no other native dependencies.
+Requires React Native 0.73 or newer; Android builds with JDK 17.
 
-Requires React Native 0.73 or newer (Android builds with JDK 17).
+### Expo
 
-## Usage
+The picker has native code, so it does not run in Expo Go. It works in a
+[development build](https://docs.expo.dev/develop/development-builds/introduction/) with no config
+plugin:
+
+```sh
+npx expo install react-native-next-wheel-picker
+npx expo run:ios   # or: npx expo run:android, or an EAS build
+```
+
+## Quick start
 
 ```tsx
 import { useState } from 'react';
@@ -41,81 +85,169 @@ const SIZES = [
 export function SizePicker() {
   const [size, setSize] = useState<'s' | 'm' | 'l'>('m');
 
-  return (
-    <WheelPicker
-      items={SIZES}
-      value={size}
-      onValueChange={(value) => setSize(value)}
-      itemStyle={{ fontSize: 22, color: '#222' }}
-    />
-  );
+  return <WheelPicker items={SIZES} value={size} onValueChange={setSize} />;
 }
 ```
 
+`items` is a list of `{ label, value }`. The wheel shows the labels and reports the values.
+
+## Recipes
+
 ### Setting the value from outside
 
-A controlled wheel follows `value`: change it from anywhere and the wheel scrolls to the matching
-row. This is what the **First**, **Last** and **Random** buttons in the recordings do:
+A controlled wheel follows `value`. Change it from anywhere and the wheel scrolls to the matching
+row; this is what the **First**, **Last** and **Random** buttons in the recordings do.
 
 ```tsx
-const MINUTES = Array.from({ length: 60 }, (_, i) => ({
-  label: String(i).padStart(2, '0'),
-  value: i,
-}));
+const FRUITS = [
+  { label: '🍎 Apple', value: 'apple' },
+  { label: '🍒 Cherry', value: 'cherry' },
+  { label: '🍋 Lemon', value: 'lemon' },
+] as const;
 
-export function MinutePicker() {
-  const [minute, setMinute] = useState(0);
+type Fruit = (typeof FRUITS)[number]['value'];
+
+export function FruitPicker() {
+  const [fruit, setFruit] = useState<Fruit>('cherry');
 
   return (
     <>
-      <WheelPicker items={MINUTES} value={minute} onValueChange={setMinute} />
-      <Button title="First" onPress={() => setMinute(0)} />
-      <Button title="Last" onPress={() => setMinute(59)} />
-      <Button title="Random" onPress={() => setMinute(Math.floor(Math.random() * 60))} />
+      <WheelPicker items={FRUITS} value={fruit} onValueChange={setFruit} />
+      <Button title="First" onPress={() => setFruit('apple')} />
+      <Button title="Last" onPress={() => setFruit('lemon')} />
     </>
   );
 }
 ```
 
-`onValueChange` fires only when the user scrolls, not when `value` changes from outside.
+`onValueChange` fires only when the user scrolls, never for a value set from outside. A value that
+matches no item selects the first row.
 
-Leave `value` out for an uncontrolled wheel: it starts on the first row and keeps its own position.
+### Rejecting a change
 
-### Object values
-
-Values are matched with `Object.is`. For objects that are not the same reference, pass `isEqual`:
+The wheel always shows `value`. A parent that ignores a change, by keeping its old `value`, snaps the
+wheel back:
 
 ```tsx
 <WheelPicker
-  items={users.map((user) => ({ label: user.name, value: user }))}
-  value={selectedUser}
-  isEqual={(a, b) => a.id === b.id}
-  onValueChange={setSelectedUser}
+  items={SEATS}
+  value={seat}
+  onValueChange={(next) => {
+    if (!next.taken) setSeat(next);
+  }}
 />
 ```
 
-## Props
+### Uncontrolled
 
-| Prop                | Type                                | Platform | Description                                                                                   |
-| ------------------- | ----------------------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `items`             | `{ label: string; value: T }[]`     | both     | Rows of the wheel. **Required.**                                                              |
-| `onValueChange`     | `(value: T, index: number) => void` | both     | Called with the value of the row the wheel lands on. **Required.**                            |
-| `value`             | `T`                                 | both     | Selected value; an unknown one selects the first row. Leave it out for an uncontrolled wheel. |
-| `isEqual`           | `(a: T, b: T) => boolean`           | both     | Matches `value` against items. Defaults to `Object.is`.                                       |
-| `style`             | `StyleProp<ViewStyle>`              | both     | Style of the view around the wheel.                                                           |
-| `itemStyle`         | `StyleProp<TextStyle>`              | both     | Row text and wheel height; see below.                                                         |
-| `selectionColor`    | `ColorValue`                        | both     | Fill of the band behind the selected row. Defaults to the system's.                           |
-| `themeVariant`      | `'light' \| 'dark'`                 | both     | Forces light or dark default colors. Defaults to the system appearance.                       |
-| `testID`            | `string`                            | both     |                                                                                               |
-| `wrapSelectorWheel` | `boolean`                           | both     | Scroll endlessly: the first row follows the last. Default `false`.                            |
+Leave `value` out and the wheel keeps its own position, starting on the first row:
 
-`itemStyle` works the same on both platforms:
+```tsx
+<WheelPicker items={SIZES} onValueChange={(size) => console.log(size)} />
+```
 
-- `fontSize` (default 21), `color`, `fontFamily`, `fontWeight` and `fontStyle` style the rows.
-  The font resolves like `<Text>` does.
-- `height` is the wheel's height, default 216. Each row is the font's line height plus 20.
+### Objects
 
-A parent that ignores a change, by keeping its old `value`, snaps the wheel back on both platforms.
+Without `keyExtractor`, `value` is compared to the items with `Object.is`, so an object must be the
+very same reference as one of the items. That breaks as soon as the selection comes from somewhere
+else: a refetch, persisted state or navigation params. `keyExtractor` returns the identity to compare
+instead:
+
+```tsx
+type User = { id: string; name: string };
+
+export function AssigneePicker({ users, assignee, onAssign }: Props) {
+  // `assignee` came from another request, so it is a different object than the item in `users`.
+  return (
+    <WheelPicker
+      items={users.map((user) => ({ label: user.name, value: user }))}
+      value={assignee}
+      keyExtractor={(user) => user.id}
+      onValueChange={onAssign}
+    />
+  );
+}
+```
+
+`onValueChange` still hands back the item's object, not the key.
+
+### Time picker with infinite scroll
+
+`loop` puts the first row after the last, so the wheel scrolls without end:
+
+```tsx
+const pad = (n: number) => String(n).padStart(2, '0');
+const HOURS = Array.from({ length: 24 }, (_, i) => ({ label: pad(i), value: i }));
+const MINUTES = Array.from({ length: 60 }, (_, i) => ({ label: pad(i), value: i }));
+
+export function TimePicker() {
+  const [hour, setHour] = useState(9);
+  const [minute, setMinute] = useState(41);
+
+  return (
+    <View style={{ flexDirection: 'row' }}>
+      <WheelPicker style={{ flex: 1 }} items={HOURS} value={hour} onValueChange={setHour} loop />
+      <WheelPicker
+        style={{ flex: 1 }}
+        items={MINUTES}
+        value={minute}
+        onValueChange={setMinute}
+        loop
+      />
+    </View>
+  );
+}
+```
+
+### Styling and dark mode
+
+```tsx
+<WheelPicker
+  items={SIZES}
+  value={size}
+  onValueChange={setSize}
+  colorScheme="dark"
+  selectionColor="#0a84ff66"
+  itemStyle={{ fontSize: 28, fontWeight: '700', color: '#ffffff', height: 180 }}
+/>
+```
+
+- `itemStyle` takes `fontSize` (default 21), `color`, `fontFamily`, `fontWeight` and `fontStyle`.
+  Fonts resolve the way `<Text>` resolves them.
+- `itemStyle.height` is the wheel's height, default 216. Each row is the font's line height plus 20.
+- Without colors the wheel follows the system appearance; `colorScheme` forces light or dark.
+- Android accepts `#RGB`, `#RRGGBBAA`, `rgb()` and `PlatformColor` for every color, and reads
+  `fontSize` in sp like the rest of React Native.
+
+## API
+
+### `<WheelPicker<T>>`
+
+| Prop             | Type                                | Default      | Description                                                  |
+| ---------------- | ----------------------------------- | ------------ | ------------------------------------------------------------ |
+| `items`          | `{ label: string; value: T }[]`     | **required** | Rows of the wheel.                                           |
+| `onValueChange`  | `(value: T, index: number) => void` | **required** | Called with the value of the row the user's scroll lands on. |
+| `value`          | `T`                                 | —            | Selected value. Leave it out for an uncontrolled wheel.      |
+| `keyExtractor`   | `(value: T) => string \| number`    | —            | Identity used to match `value` to an item, e.g. an id.       |
+| `loop`           | `boolean`                           | `false`      | Scroll endlessly: the first row follows the last.            |
+| `itemStyle`      | `StyleProp<TextStyle>`              | —            | Row font and color, and the wheel's `height`.                |
+| `selectionColor` | `ColorValue`                        | system fill  | Fill of the band behind the selected row.                    |
+| `colorScheme`    | `'light' \| 'dark'`                 | system       | Forces light or dark default colors.                         |
+| `style`          | `StyleProp<ViewStyle>`              | —            | Style of the view around the wheel.                          |
+| `testID`         | `string`                            | —            | Test identifier.                                             |
+
+Every prop works the same on iOS and Android. The package also exports the `WheelPickerItem<T>` and
+`WheelPickerProps<T>` types.
+
+## Examples
+
+| App                             | What it is                                                                          | Run it                                                     |
+| ------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| [`example-expo/`](example-expo) | Expo demo with a tab per use case: time, strings, objects and styling.              | `cd example-expo && npm install && npm run ios`            |
+| [`example/`](example)           | Bare React Native playground with a toggle for every prop, the value and the items. | `cd example && npm install && npm run pods && npm run ios` |
+
+Both run the library from `src/`, so edits show up on reload. Swap `ios` for `android` to run on
+Android.
 
 ## Development
 
@@ -127,16 +259,9 @@ npm run lint
 npm run build   # writes lib/
 ```
 
-[`example/`](example) is a playground app with toggles for every prop, the value and the item
-set. It runs the library from `src/`:
+### Recording the GIFs
 
-```sh
-cd example && npm install
-npm run pods      # iOS only
-npm run android   # or: npm run ios
-```
-
-The GIFs in `docs/` are recorded from the example app. With Metro running, the app installed and
+The GIFs in `docs/` are recorded from the Expo demo. With Metro running, the demo installed, and
 `ffmpeg` and [`axe`](https://github.com/cameroncooke/AXe) on the path, these scripts replay the same
 gestures and rewrite the GIFs:
 
@@ -147,7 +272,7 @@ scripts/gifs/record-android.sh   # running 1080x2280 emulator
 
 The taps and swipes use fixed coordinates, so other screen sizes need new ones.
 
-## Releasing
+### Releasing
 
 1. Bump `version` in `package.json` and add a `CHANGELOG.md` entry.
 2. Commit, then tag and push: `git tag v1.2.3 && git push origin main v1.2.3`.
@@ -158,4 +283,4 @@ it can switch to [trusted publishing](https://docs.npmjs.com/trusted-publishers)
 
 ## License
 
-MIT
+[MIT](LICENSE)

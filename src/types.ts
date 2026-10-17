@@ -13,8 +13,21 @@ export interface WheelPickerProps<T> {
    */
   value?: T;
   onValueChange: (value: T, index: number) => void;
-  /** Matches `value` against `items`. Defaults to `Object.is`; pass one for object values. */
-  isEqual?: (a: T, b: T) => boolean;
+  /**
+   * Returns a value's identity. `value` selects the item whose key is the same, compared with
+   * `Object.is`. Without it values are compared directly, so an object `value` must be the same
+   * reference as an item's.
+   *
+   * @example
+   * // `user` may come from a refetch, so it is a different object than the items'.
+   * <WheelPicker
+   *   items={users.map((u) => ({ label: u.name, value: u }))}
+   *   value={user}
+   *   keyExtractor={(u) => u.id}
+   *   onValueChange={setUser}
+   * />
+   */
+  keyExtractor?: (value: T) => string | number;
   /** Style of the view around the wheel. The wheel itself is `itemStyle.height` tall. */
   style?: StyleProp<ViewStyle>;
   /**
@@ -26,8 +39,8 @@ export interface WheelPickerProps<T> {
   /** Fill of the band behind the selected row. Defaults to the system's (quaternarySystemFill). */
   selectionColor?: ColorValue;
   /** Forces light or dark default colors. Defaults to the system appearance. */
-  themeVariant?: 'light' | 'dark';
+  colorScheme?: 'light' | 'dark';
   testID?: string;
   /** Scroll endlessly: the first row follows the last. Default `false`. */
-  wrapSelectorWheel?: boolean;
+  loop?: boolean;
 }

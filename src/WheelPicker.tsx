@@ -4,7 +4,7 @@ import { NativeWheelPicker } from './NativeWheelPicker';
 import type { WheelPickerProps } from './types';
 
 // The native wheel works in row indexes; WheelPicker maps them to values.
-type NativeWheelProps<T> = Omit<WheelPickerProps<T>, 'value' | 'isEqual' | 'onValueChange'> & {
+type NativeWheelProps<T> = Omit<WheelPickerProps<T>, 'value' | 'keyExtractor' | 'onValueChange'> & {
   selectedIndex: number;
   onIndexChange: (index: number) => void;
 };
@@ -17,9 +17,9 @@ function NativeWheel<T>(props: NativeWheelProps<T>) {
     style,
     itemStyle,
     testID,
-    wrapSelectorWheel = false,
+    loop = false,
     selectionColor,
-    themeVariant,
+    colorScheme,
   } = props;
 
   const {
@@ -39,8 +39,8 @@ function NativeWheel<T>(props: NativeWheelProps<T>) {
     <View style={[styles.clip, style]}>
       <NativeWheelPicker
         testID={testID}
-        wrapSelectorWheel={wrapSelectorWheel}
-        themeVariant={themeVariant}
+        wrapSelectorWheel={loop}
+        themeVariant={colorScheme}
         // Processed by the view config (the native prop is a Color); processing
         // it here as well would read the ARGB number as RRGGBBAA.
         selectionColor={selectionColor}
@@ -66,7 +66,7 @@ function NativeWheel<T>(props: NativeWheelProps<T>) {
 
 export function WheelPicker<T>({
   value,
-  isEqual = Object.is,
+  keyExtractor,
   onValueChange,
   ...props
 }: WheelPickerProps<T>) {
@@ -76,10 +76,7 @@ export function WheelPicker<T>({
   const selectedIndex =
     value === undefined
       ? Math.min(ownIndex, Math.max(items.length - 1, 0))
-      : Math.max(
-          items.findIndex((item) => isEqual(item.value, value)),
-          0
-        );
+      : Math.max(findIndex(items, value, keyExtractor), 0);
 
   // Tracks a controlled wheel too, so dropping `value` keeps the row shown.
   if (value !== undefined && ownIndex !== selectedIndex) setOwnIndex(selectedIndex);
@@ -92,6 +89,16 @@ export function WheelPicker<T>({
   };
 
   return <NativeWheel {...props} selectedIndex={selectedIndex} onIndexChange={onIndexChange} />;
+}
+
+function findIndex<T>(
+  items: WheelPickerProps<T>['items'],
+  value: T,
+  keyExtractor: WheelPickerProps<T>['keyExtractor']
+) {
+  if (!keyExtractor) return items.findIndex((item) => Object.is(item.value, value));
+  const key = keyExtractor(value);
+  return items.findIndex((item) => Object.is(keyExtractor(item.value), key));
 }
 
 // UIPickerView's default height, overridden by itemStyle.height.

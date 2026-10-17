@@ -7,7 +7,7 @@ export type ItemSet = {
   label: string;
   items: readonly WheelPickerItem<unknown>[];
   // Object values need it: a fresh object is never Object.is to an item.
-  isEqual?: (a: unknown, b: unknown) => boolean;
+  keyExtractor?: (value: unknown) => string | number;
 };
 
 const range = (count: number, format: (n: number) => string) =>
@@ -49,9 +49,9 @@ export const ITEM_SETS = {
   },
   countries: {
     label: 'Objects',
-    // Copies, so only isEqual can match them to the items.
+    // Copies, so only keyExtractor can match them to the items.
     items: COUNTRIES.map((country) => ({ label: country.name, value: { ...country } })),
-    isEqual: (a, b) => (a as Country).code === (b as Country).code,
+    keyExtractor: (country) => (country as Country).code,
   },
   long: {
     label: 'Long labels',

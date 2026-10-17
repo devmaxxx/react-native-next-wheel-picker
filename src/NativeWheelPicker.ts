@@ -6,10 +6,9 @@ import type { WheelPickerProps } from './types';
 // PlatformColor map): nothing processes values nested in a map prop.
 type NativeColor = ReturnType<typeof processColor>;
 
-export interface NativeWheelPickerProps extends Pick<
-  WheelPickerProps<unknown>,
-  'testID' | 'wrapSelectorWheel' | 'themeVariant'
-> {
+export interface NativeWheelPickerProps extends Pick<WheelPickerProps<unknown>, 'testID'> {
+  wrapSelectorWheel?: WheelPickerProps<unknown>['loop'];
+  themeVariant?: WheelPickerProps<unknown>['colorScheme'];
   style?: WheelPickerProps<unknown>['style'];
   // fontWeight goes as a string: the native side parses it like <Text> does.
   itemStyle?: Omit<TextStyle, 'color' | 'fontWeight'> & {

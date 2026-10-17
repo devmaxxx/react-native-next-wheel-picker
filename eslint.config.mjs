@@ -12,16 +12,20 @@ export default tseslint.config(
       'example/android/',
       'example/ios/',
       'example/vendor/',
+      'example-expo/node_modules/',
+      'example-expo/android/',
+      'example-expo/ios/',
+      'example-expo/.expo/',
     ],
   },
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.{ts,tsx}', 'example/src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'example/src/**/*.{ts,tsx}', 'example-expo/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,
   },
   {
-    files: ['*.js', 'example/*.js'],
+    files: ['*.js', 'example/*.js', 'example-expo/*.js'],
     languageOptions: { sourceType: 'commonjs', globals: { module: 'writable' } },
     rules: { '@typescript-eslint/no-require-imports': 'off' },
   }

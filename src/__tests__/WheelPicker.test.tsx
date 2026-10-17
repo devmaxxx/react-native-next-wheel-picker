@@ -39,14 +39,20 @@ describe('WheelPicker', () => {
     });
   });
 
-  it('matches object values with isEqual', async () => {
-    await renderPicker({ value: { id: 3 }, isEqual: (a, b) => a.id === b.id });
+  it('matches object values by keyExtractor', async () => {
+    await renderPicker({ value: { id: 3 }, keyExtractor: (size) => size.id });
 
     expect(picker().props.selectedIndex).toBe(2);
   });
 
-  it('passes a system label color and the theme through', async () => {
-    await renderPicker({ itemStyle: { color: PlatformColor('label') }, themeVariant: 'dark' });
+  it('matches object values by reference without keyExtractor', async () => {
+    await renderPicker({ value: { id: 3 } });
+
+    expect(picker().props.selectedIndex).toBe(0);
+  });
+
+  it('passes a system label color and the color scheme through', async () => {
+    await renderPicker({ itemStyle: { color: PlatformColor('label') }, colorScheme: 'dark' });
 
     expect(picker().props).toMatchObject({
       themeVariant: 'dark',
@@ -89,7 +95,7 @@ describe('WheelPicker', () => {
   it('passes the font like iOS: family, weight as a string, style', async () => {
     await renderPicker({
       itemStyle: { fontFamily: 'Inter', fontWeight: 600, fontStyle: 'italic' },
-      themeVariant: 'light',
+      colorScheme: 'light',
     });
 
     expect(picker().props.itemStyle).toMatchObject({
@@ -123,8 +129,10 @@ describe('WheelPicker', () => {
 
   it('does not wrap past the last row unless asked, like iOS', async () => {
     await renderPicker();
-
     expect(picker().props.wrapSelectorWheel).toBe(false);
+
+    await renderPicker({ loop: true });
+    expect(picker().props.wrapSelectorWheel).toBe(true);
   });
 
   it('ignores an index outside the items', async () => {
