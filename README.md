@@ -357,13 +357,14 @@ The taps and swipes use fixed coordinates, so other screen sizes need new ones.
 
 1. Bump `version` in `package.json` and add a `CHANGELOG.md` entry.
 2. Commit, then tag and push: `git tag v1.2.3 && git push origin main v1.2.3`.
-3. The `publish` workflow checks the tag against the version, builds and publishes with
+3. The `release` workflow checks the tag against the version, builds and publishes with
    [trusted publishing](https://docs.npmjs.com/trusted-publishers): no token, and npm adds
    provenance on its own.
 
 npm sets up a trusted publisher only for a package that already exists, so the first version goes
 out by hand (`npm login`, then `npm publish --access public`). After that, add this repo and
-`publish.yml` as the trusted publisher on npmjs.com, and the tags take over.
+`release.yml` as the trusted publisher on npmjs.com, and the tags take over. Each tag also gets a
+GitHub release with its `CHANGELOG.md` entry.
 
 ## Contributing
 
